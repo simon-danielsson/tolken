@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+# =============================================================================
+# cenv (https://github.com/simon-danielsson/cenv)
+# v0.4.2
+#
+# Copyright © 2026 Simon Danielsson
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files, to deal in the Software
+# without restriction, including without limitation the rights to use, copy,
+# modify, merge, publish, distribute, sublicense, and/or sell copies of the
+# Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+# env variables ----------------------------------------------------------------
+
+project_name="tolken"
+project_repo="https://github.com/simon-danielsson/$project_name"
+author="Simon Danielsson"
+author_contact="contact@simondanielsson.se"
+c_standard="gnu23"
+
+c_flags_test=(
+    "-std=" "-g" "-O0" "-DDEBUG" "-fsanitize=address"
+    "-Wall" "-Wextra" "-Wpedantic" "-Wshadow" "-Werror=format-security"
+)
+
+c_flags_debug=(
+    "-std=" "-g" "-O0" "-DDEBUG" "-fsanitize=address" "-Wall"
+    "-Wextra" "-Wpedantic" "-Wshadow" "-Werror=format-security"
+)
+
+c_flags_release=(
+    "-O2" "-DNDEBUG" "-Wextra"
+)
+
+# code -------------------------------------------------------------------------
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$root"
+
+mkdir -p build
+mkdir -p build/release
+mkdir -p build/debug
+mkdir -p build/tests
+
+col_scs="\033[1;32m"   # bold green
+col_cmd="\033[1;34m"   # bold blue
+col_subc="\033[1;33m"   # bold yellow
+col_git="\033[1;36m"   # bold cyan
+col_flag="\033[1;31m"   # bold red
+CR="\033[0m"      # reset
+
+current_date=$(date +"%F")
+
+latest_git_commit=$(git log -1 --format='%ad' --date=format:'%d %b %Y')
+if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    git_head_hash_short=$(git rev-parse --short HEAD)
+    git_head_hash_long=$(git rev-parse HEAD)
+else
+    git_head_hash_short="nogit"
+    git_head_hash_long="0.0.0"
+fi
+
+get_version() {
+    git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0"
+}
+VERSION="$(get_version)"
+
+nob_extra_flags=(
+    "-DENV_GITHASH=\"${git_head_hash_long}\""
+    "-DENV_GITTAG=\"${VERSION}\""
+    "-DENV_NAME=\"${project_name}\""
+    "-DENV_AUTHOR=\"${author}\""
+    "-DENV_CONTACT=\"${author_contact}\""
+    "-DENV_REPO=\"${project_repo}\""
+    "-std=${c_standard}"
+)
+
+debug_dir="$root/build/debug"; mkdir -p $debug_dir
+build_debug() {
+    cd "$root/tools/nob/" || return 1
+    cc nob.c -o nob || return 1
+    local c_flags=(
+        "${c_flags_debug[@]}"
+        "${nob_extra_flags[@]}"
+        )
+    APP_VERSION="$VERSION" ./nob "$root/src" "${c_flags[@]}" || return 1
+    bin_name="$project_name-$VERSION-debug-$git_head_hash_short"
+    mv main "$debug_dir/$bin_name" || return 1
+    "$debug_dir/$bin_name"
+}
+
+test_dir="$root/build/test"; mkdir -p $test_dir
+build_tests() {
+    cd "$root/tools/nob/" || return 1
+    cc nob.c -o nob || return 1
+    local c_flags=(
+        "${c_flags_test[@]}"
+        "${nob_extra_flags[@]}"
+        )
+    APP_VERSION="$VERSION" ./nob "$root/tests" "${c_flags[@]}" || return 1
+    bin_name="$project_name-$VERSION-test-$git_head_hash_short"
+    mv main "$test_dir/$bin_name" || return 1
+    "$test_dir/$bin_name"
+}
+
+release_dir="$root/build/release"; mkdir -p $release_dir
+build_release() {
+    cd "$root/tools/nob/" || return 1
+    cc nob.c -o nob || return 1
+    local c_flags=(
+        "${c_flags_release[@]}"
+        "${nob_extra_flags[@]}"
+        )
+    APP_VERSION="$VERSION" ./nob "$root/src" "${c_flags[@]}" || return 1
+    bin_name="$project_name-$VERSION-release-$git_head_hash_short"
+    mv main "$release_dir/$bin_name" || return 1
+    # "$release_dir/$bin_name"
+}
+
+doc() {
+    mkdir -p ./tools/cdok/gen
+    ./tools/cdok/cdok -s ./src -d ./tools/cdok/gen -o
+}
+
+update_header_only_lib() {
+    lib_name="$1"; lib_path="$2"; lib_repo_raw="$3"; root=$(pwd)
+    cd "$lib_path"
+    mv $lib_name $lib_name.bak
+    printf "\nFetching latest version of $lib_name...\n"
+    curl -O $lib_repo_raw || {
+        error "Failed to curl $lib_name from the $lib_name github repo"
+    }
+    if [ -f "$lib_name" ]; then
+        rm $lib_name.bak
+        printf "\n${col_scs}'$lib_name' was updated successfully!${CR}\n"
+    else
+        mv $lib_name.bak $lib_name
+        printf "\n${col_flag}'$lib_name' couldn't be updated!${CR}\n"
+    fi
+    cd $root
+}
+
+update() {
+    # update cdok
+    cd "$root/tools"
+    rm -rf cdok
+    git clone https://github.com/simon-danielsson/cdok
+    $root/tools/cdok/run release
+    mv "$root/tools/cdok/build/release/cdok" "$root/tools/main"
+    cd $root/tools
+    zip -r cdok.zip cdok
+    rm -rf cdok
+    mkdir -p cdok
+    mv main ./cdok/cdok
+    mv cdok.zip ./cdok/cdok-src_$current_date.zip
+    printf "\n${col_scs}'cdok' was updated successfully!${CR}\n"
+    cd $root
+
+    update_header_only_lib "ana.h" "./src/libs" "https://raw.githubusercontent.com/simon-danielsson/ana.h/refs/heads/main/ana.h"
+    update_header_only_lib "nob.h" "./tools/nob" "https://raw.githubusercontent.com/tsoding/nob.h/refs/heads/main/nob.h"
+}
+
+tidy() {
+    printf "Tidying up codebase...\n"
+    find . -type f \(         -name ".DS_Store" -o         -name "nvim.log" -o         -name "*.o" -o         -name "*.obj" -o         -name "a.out"         \) -print -delete
+
+    find ./build/debug ./build/tests -type d -name "main.dSYM" -print -exec rm -rf {} +
+    printf "Done!\n"
+}
+
+help() {
+    printf "\n"
+    printf "Project name     :  $project_name\n"
+    printf "Current version  :  $VERSION\n"
+    printf "Latest commit    :  $latest_git_commit\n"
+    printf "First created    :  04 May 2026\n"
+    printf "C Standard       :  $c_standard\n"
+
+    printf "\n"
+
+    printf "${col_cmd}cenv ${col_flag}debug${CR}\n"
+    printf "│ compile into and run from './build/debug' with debug options\n"
+    printf "╰ default command\n"
+
+    printf "${col_cmd}cenv ${col_flag}release${CR}\n"
+    printf "╰ compile into and run from './build/release' with optimizations\n"
+
+    printf "${col_cmd}cenv ${col_flag}test${CR}\n"
+    printf "│ compile into and run from './build/tests' directory with debug options\n"
+    printf "╰ the source folder used for this command is './tests'\n"
+
+    printf "\n"
+
+    printf "${col_cmd}cenv ${col_subc}doc${CR}\n"
+    printf "│ auto-generate docs from './src' and open in browser\n"
+    printf "╰ this command is still in the experimental stage\n"
+
+    printf "${col_cmd}cenv ${col_subc}update${CR}\n"
+    printf "│ update bundled tools and libraries from their upstream git sources\n"
+    printf "╰ user-added dependencies are safely ignored\n"
+
+    printf "${col_cmd}cenv ${col_subc}tidy${CR}\n"
+    printf "╰ clean up log, debug and object files\n"
+
+    printf "${col_cmd}cenv ${col_subc}help${CR}\n"
+    printf "╰ display help\n"
+
+    printf "\n"
+}
+
+if [ -z "$1" ]; then
+    # if no arguments
+  build_debug
+else
+  case "$1" in
+    release)
+      build_release
+      ;;
+    debug)
+      build_debug
+      ;;
+    test)
+      build_tests
+      ;;
+    help)
+      help
+      ;;
+    doc)
+      doc
+      ;;
+    tidy)
+      printf "\n${col_flag}The following files will be found and cleaned:\n"
+      printf ".DS_Store\nnvim.log\n*.o\n*.obj\na.out\nmain.dSYM${CR}\n\n"
+      printf "Are you sure you want to tidy?\n[y/n]: "
+      read -r confirm
+
+      case "$confirm" in
+        [yY]|[yY][eE][sS])
+          tidy
+          ;;
+        *)
+          echo "Tidy cancelled."
+          ;;
+      esac
+      ;;
+    update)
+      printf "\n${col_flag}You're about to run an update which can break\n"
+      printf "your setup or introduce unwanted changes!\n"
+      printf "Make a commit to git before continuing.${CR}\n\n"
+      printf "Are you sure you want to run an update?\n[y/n]: "
+      read -r confirm
+
+      case "$confirm" in
+        [yY]|[yY][eE][sS])
+          update
+          ;;
+        *)
+          echo "Update cancelled."
+          ;;
+      esac
+      ;;
+
+    *)
+      echo "Error: unknown argument '$1'"
+      exit 1
+      ;;
+  esac
+fi
+

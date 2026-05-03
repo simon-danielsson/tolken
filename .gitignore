@@ -1,0 +1,8 @@
+build.sh
+/tools/cdok/gen
+/tools/cdok/gen/*
+/tools/nob/nob
+nvim.log
+/build
+/build/*
+.DS_Store
