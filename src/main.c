@@ -1,7 +1,7 @@
 //! main entry point of program
 #define ANA_IMPLEMENTATION
 #define TLK_IMPLEMENTATION
-#include "./tlk.h"
+#include "../tlk.h"
 #include "env.h"
 
 void setup(void) {

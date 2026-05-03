@@ -37,7 +37,7 @@ Inspirations and references:
 
 ## Usage
   
-Copy [tolken](./tolken) into your project and include it like this:  
+Copy [tolken](./tlk.h) into your project and include it like this:  
   
 ```c
 #define TLK_IMPLEMENTATION
