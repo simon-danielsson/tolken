@@ -1,6 +1,7 @@
 build.sh
 /tools/cdok/gen
 /tools/cdok/gen/*
+ANSI-escape-sequences.md
 /tools/nob/nob
 nvim.log
 /build
