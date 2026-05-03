@@ -1,4 +1,4 @@
-//! ana.h v0.4.5
+//! ana.h v0.4.6
 //!
 //! https://github.com/simon-danielsson/analib.h
 
@@ -130,6 +130,9 @@ char *al_str_to_upper(const char *str);
 // remove first n characters from string with memmove
 void al_remove_first_n(char *c, int n);
 
+// sleep
+void al_sleep(unsigned int seconds);
+
 #define _al_log_clr "\033[34m"
 #define _al_assert_clr "\033[31m"
 #define _al_error_clr "\033[31m"
@@ -210,7 +213,7 @@ void al_remove_first_n(char *c, int n);
 // IMPLEMENTATIONS
 // =============================================================================
 
-#ifdef ANALIB_IMPLEMENTATION
+#ifdef ANA_IMPLEMENTATION
 
 /// checks if the input str contains nothing
 bool al_is_empty_or_whitespace(const char *str) {
@@ -402,4 +405,15 @@ char *al_str_to_upper(const char *str) {
   return al_strdup(temp);
 }
 
-#endif // ANALIB_IMPLEMENTATION
+/// sleep
+/// unix/windows cross compatible
+/// @param int as seconds
+void al_sleep(unsigned int seconds) {
+#ifdef _WIN32
+  Sleep(seconds * 1000); // Windows uses milliseconds
+#else
+  sleep(seconds); // Unix uses seconds
+#endif
+}
+
+#endif // ANA_IMPLEMENTATION
