@@ -55,17 +55,6 @@
 // reset      	0     	0
 //-------------------------
 
-// \033[0m – Resets all styles back to default (clears colors and formatting).
-// \033[1m – Makes text bold or brighter depending on the terminal.
-// \033[2m – Applies a dim/faint effect to the text.
-// \033[3m – Italicizes the text (not supported in all terminals).
-// \033[4m – Underlines the text.
-// \033[5m – Makes the text blink (rarely supported).
-// \033[7m – Reverses foreground and background colors.
-// \033[30m – Sets the text color to black.
-// \033[31m – Sets the text color to red.
-// \033[44m – Sets the background color to blue.
-
 typedef enum {
     BLACK,
     RED,

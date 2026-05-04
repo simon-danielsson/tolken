@@ -22,8 +22,7 @@
 
 ## Info
     
-This is a simple library to use for building TUI applications in C. Most of the
-functions are based around old-school ANSI sequences.  
+This is a simple library to use when building TUI applications in C.
   
 **This library is not trying to compete with libraries such as ncurses; this is only meant to be a fun project and nothing more.**  
   
@@ -37,14 +36,15 @@ Inspirations and references:
 
 ## Usage
   
-Copy [tolken](./tlk.h) into your project and include it like this:  
+Copy [tlk.h](./tlk.h) into your project and include it like this:  
   
 ```c
 #define TLK_IMPLEMENTATION
 #include "./tlk.h"
 ```
   
-Feel free to use [main.c](./src/main.c) as a makeshift quick-start guide.
+To get an idea of what this library can do, check out the example programs:  
+-- [snake](./examples/snake.c)
   
 ---
 <div id="license"></div>

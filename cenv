@@ -53,7 +53,7 @@ cd "$root"
 mkdir -p build
 mkdir -p build/release
 mkdir -p build/debug
-mkdir -p build/tests
+mkdir -p build/examples
 
 col_scs="\033[1;32m"   # bold green
 col_cmd="\033[1;34m"   # bold blue
@@ -102,7 +102,7 @@ build_debug() {
     "$debug_dir/$bin_name"
 }
 
-test_dir="$root/build/test"; mkdir -p $test_dir
+test_dir="$root/build/examples"; mkdir -p $test_dir
 build_tests() {
     cd "$root/tools/nob/" || return 1
     cc nob.c -o nob || return 1
@@ -110,8 +110,8 @@ build_tests() {
         "${c_flags_test[@]}"
         "${nob_extra_flags[@]}"
         )
-    APP_VERSION="$VERSION" ./nob "$root/tests" "${c_flags[@]}" || return 1
-    bin_name="$project_name-$VERSION-test-$git_head_hash_short"
+    APP_VERSION="$VERSION" ./nob "$root/examples" "${c_flags[@]}" || return 1
+    bin_name="$project_name-$VERSION-example-$git_head_hash_short"
     mv main "$test_dir/$bin_name" || return 1
     "$test_dir/$bin_name"
 }
@@ -198,9 +198,9 @@ help() {
     printf "${col_cmd}cenv ${col_flag}release${CR}\n"
     printf "╰ compile into and run from './build/release' with optimizations\n"
 
-    printf "${col_cmd}cenv ${col_flag}test${CR}\n"
-    printf "│ compile into and run from './build/tests' directory with debug options\n"
-    printf "╰ the source folder used for this command is './tests'\n"
+    printf "${col_cmd}cenv ${col_flag}example${CR}\n"
+    printf "│ compile into and run from './build/examples' directory\n"
+    printf "╰ the source folder used for this command is './examples'\n"
 
     printf "\n"
 
@@ -232,7 +232,7 @@ else
     debug)
       build_debug
       ;;
-    test)
+    example)
       build_tests
       ;;
     help)
