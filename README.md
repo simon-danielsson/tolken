@@ -43,8 +43,8 @@ Copy [tlk.h](./tlk.h) into your project and include it like this:
 #include "./tlk.h"
 ```
   
-To get an idea of what this library can do, check out the example programs:  
--- [snake](./examples/snake.c)
+To get an idea of what this library is capable of, check out the following example programs:  
+- [snake](./examples/snake.c)
   
 ---
 <div id="license"></div>
