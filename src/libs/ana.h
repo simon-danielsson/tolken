@@ -1,4 +1,4 @@
-//! ana.h v0.4.6
+//! ana.h v0.4.7
 //!
 //! https://github.com/simon-danielsson/analib.h
 
@@ -130,11 +130,11 @@ char *al_str_to_upper(const char *str);
 // remove first n characters from string with memmove
 void al_remove_first_n(char *c, int n);
 
-// sleep
-void al_sleep(unsigned int seconds);
-
 // sleep in floating point seconds
 void al_sleepf(double seconds);
+
+// sleep
+void al_sleep(unsigned int seconds);
 
 #define _al_log_clr "\033[34m"
 #define _al_assert_clr "\033[31m"
@@ -433,5 +433,4 @@ void al_sleep(unsigned int seconds) {
     sleep(seconds); // Unix uses seconds
 #endif
 }
-
 #endif // ANA_IMPLEMENTATION

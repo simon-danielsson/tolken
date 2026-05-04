@@ -10,14 +10,18 @@
 typedef enum { UP, DOWN, LEFT, RIGHT } Dir;
 
 typedef struct {
+    Pos current;
+    Pos prev;
+} TailSegment;
+
+typedef struct {
     // player
     Pos head;
-    Pos *tail;
+    TailSegment *tail;
     size_t tail_size;
     Dir dir;
     // general
     Pos food;
-    bool no_food;
     bool new_score;
     int score;
     Pos size;
@@ -29,11 +33,17 @@ void cleanup(void);
 void Snake_init(Snake *sn);
 void controls(Snake *sn);
 void gen_new_food(Snake *sn);
+bool food_collision(Snake *sn);
+bool boundary_collision(Snake *sn);
+bool snake_collision(Snake *sn);
+void extend_tail(Snake *sn, TailSegment *new_tail);
+void update_snake_pos(Snake *sn, Pos *head_prev_pos);
+void game_over(int score);
 
-#define SCORE_COL YELLOW
+#define SCORE_COL WHITE
 #define FOOD_COL RED
-#define FOOD_ICO "⧳"
-#define SNAKE_COL GREEN
+#define FOOD_ICO "O"
+#define SNAKE_COL MAGENTA
 #define SNAKE_ICO "█"
 
 int main(void) {
@@ -45,47 +55,59 @@ int main(void) {
     char score_buf[32];
     Pos head_prev_pos;
 
-    // tlk_screen_color(GREEN);
+    // init food
+    gen_new_food(&sn);
+
     while (!sn.should_quit) {
         // update --------------------------------------------------------------
         head_prev_pos = sn.head;
-        {
-            // snake
-            switch (sn.dir) {
-                case LEFT:
-                    sn.head.c--;
-                    break;
-                case RIGHT:
-                    sn.head.c++;
-                    break;
-                case UP:
-                    sn.head.r--;
-                    break;
-                case DOWN:
-                    sn.head.r++;
-                    break;
+        // term size
+        sn.size = tlk_terminal_size();
+
+        update_snake_pos(&sn, &head_prev_pos);
+
+        // collisions ------------------------------------------------------
+        if (boundary_collision(&sn)) {
+            game_over(sn.score);
+            sn.should_quit = true;
+            break;
+        }
+
+        if (snake_collision(&sn)) {
+            game_over(sn.score);
+            sn.should_quit = true;
+            break;
+        }
+
+        if (food_collision(&sn)) {
+            if (sn.tail_size == 0) {
+                extend_tail(&sn, &(TailSegment){.current = head_prev_pos,
+                        .prev = head_prev_pos});
+            } else {
+                extend_tail(&sn,
+                        &(TailSegment){.current = sn.tail[sn.tail_size - 1].prev,
+                        .prev = sn.tail[sn.tail_size - 1].prev});
             }
 
-            // term size
-            sn.size = tlk_terminal_size();
-
-            // food
-            if (sn.no_food) {
-                tlk_cursor_mv(&(Pos){.c = sn.food.c, .r = sn.food.r});
-                tlk_clear_at_cursor_pos();
-                gen_new_food(&sn);
-                sn.no_food = false;
-            }
+            tlk_cursor_mv(&(Pos){.c = sn.food.c, .r = sn.food.r});
+            tlk_clear_at_cursor_pos();
+            gen_new_food(&sn);
         }
 
         // draw ----------------------------------------------------------------
         {
             // score
             if (sn.new_score) {
-                tlk_cursor_mv(&(Pos){.c = 0, .r = 0});
                 score_buf[0] = '\0';
                 snprintf(score_buf, sizeof(score_buf), " Score: %d ", sn.score);
-                tlk_draw(score_buf, (Style){.fg = BLACK, .bg = SCORE_COL});
+                for (int i = 0; i < sn.size.c; i++) {
+                    tlk_cursor_mv(&(Pos){.c = i, .r = 0});
+                    tlk_draw(" ", (Style){.fg = BLACK, .bg = SCORE_COL});
+                }
+                tlk_cursor_mv(
+                        &(Pos){.c = sn.size.c / 2 - (strlen(score_buf) / 2), .r = 0});
+                tlk_draw(score_buf,
+                        (Style){.fg = BLACK, .bg = SCORE_COL, .bold = true});
                 sn.new_score = false;
             }
 
@@ -95,20 +117,147 @@ int main(void) {
             tlk_cursor_mv(&(Pos){.c = sn.head.c, .r = sn.head.r});
             tlk_draw(SNAKE_ICO, (Style){.fg = SNAKE_COL, .bg = DEFAULT});
 
+            for (size_t i = 0; i < sn.tail_size; i++) {
+                tlk_cursor_mv(&sn.tail[i].prev);
+                tlk_clear_at_cursor_pos();
+                sn.tail[i].prev = sn.tail[i].current;
+                tlk_cursor_mv(
+                        &(Pos){.c = sn.tail[i].current.c, .r = sn.tail[i].current.r});
+                tlk_draw(SNAKE_ICO, (Style){.fg = SNAKE_COL, .bg = DEFAULT});
+            }
+
             // food
             tlk_cursor_mv(&(Pos){.c = sn.food.c, .r = sn.food.r});
             tlk_draw(FOOD_ICO, (Style){.fg = FOOD_COL, .bg = DEFAULT});
-            sn.no_food = true;
         }
 
         // after ---------------------------------------------------------------
-        al_sleepf(0.1);
+        al_sleepf(0.2);
         tlk_flush();
         controls(&sn);
     }
     cleanup();
 
     return 0;
+}
+
+bool boundary_collision(Snake *sn) {
+    if (sn->head.c > sn->size.c || sn->head.c < 0) {
+        return true;
+    }
+    if (sn->head.r > sn->size.r || sn->head.r < 1) {
+        return true;
+    }
+    for (size_t i = 0; i < sn->tail_size; i++) {
+        if (sn->tail[i].current.c > sn->size.c || sn->tail[i].current.c < 0) {
+            return true;
+        }
+        if (sn->tail[i].current.r > sn->size.r || sn->tail[i].current.r < 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool snake_collision(Snake *sn) {
+    if (sn->tail_size <= 1) {
+        return false;
+    }
+    for (size_t i = 1; i < sn->tail_size - 1; i++) {
+        if (sn->tail[i].current.c == sn->head.c &&
+                sn->tail[i].current.r == sn->head.r) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void game_over(int score) {
+    tlk_screen_clear();
+    Pos size = tlk_terminal_size();
+    char buff[256];
+    snprintf(buff, sizeof(buff), " Total score: %d ", score);
+    tlk_cursor_mv(&(Pos){.c = size.c / 2 - 14, .r = size.r / 2 - 1});
+    tlk_draw("You lost! Exiting in 5 seconds.", tlk_style_default());
+    tlk_cursor_mv(
+            &(Pos){.c = size.c / 2 - (strlen(buff) / 2), .r = size.r / 2 + 1});
+    tlk_draw(buff, tlk_style_default());
+    tlk_flush();
+    al_sleep(5);
+}
+
+void update_snake_pos(Snake *sn, Pos *head_prev_pos) {
+    switch (sn->dir) {
+        case LEFT:
+            sn->head.c--;
+            for (size_t i = 0; i < sn->tail_size; i++) {
+                if (i == 0) {
+                    sn->tail[i].current = *head_prev_pos;
+                } else {
+                    sn->tail[i].current = sn->tail[i - 1].prev;
+                }
+            }
+            break;
+
+        case RIGHT:
+            sn->head.c++;
+            for (size_t i = 0; i < sn->tail_size; i++) {
+                if (i == 0) {
+                    sn->tail[i].current = *head_prev_pos;
+                } else {
+                    sn->tail[i].current = sn->tail[i - 1].prev;
+                }
+            }
+            break;
+
+        case UP:
+            sn->head.r--;
+            for (size_t i = 0; i < sn->tail_size; i++) {
+                if (i == 0) {
+                    sn->tail[i].current = *head_prev_pos;
+                } else {
+                    sn->tail[i].current = sn->tail[i - 1].prev;
+                }
+            }
+            break;
+
+        case DOWN:
+            sn->head.r++;
+            for (size_t i = 0; i < sn->tail_size; i++) {
+                if (i == 0) {
+                    sn->tail[i].current = *head_prev_pos;
+                } else {
+                    sn->tail[i].current = sn->tail[i - 1].prev;
+                }
+            }
+            break;
+    }
+}
+
+void extend_tail(Snake *sn, TailSegment *new_tail) {
+    TailSegment *tmp =
+        realloc(sn->tail, (sn->tail_size + 1) * sizeof(TailSegment));
+    sn->tail = tmp;
+    sn->tail[sn->tail_size] = *new_tail;
+    sn->tail_size++;
+}
+
+bool food_collision(Snake *sn) {
+    if (sn->head.c == sn->food.c && sn->head.r == sn->food.r) {
+        sn->score += 5;
+        sn->new_score = true;
+        return true;
+    }
+    for (size_t i = 0; i < sn->tail_size; i++) {
+        if (sn->tail[i].current.c == sn->food.c &&
+                sn->tail[i].current.r == sn->food.r) {
+            sn->score += 5;
+            sn->new_score = true;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void setup(void) {
@@ -132,7 +281,8 @@ void cleanup(void) {
 }
 
 void gen_new_food(Snake *sn) {
-    sn->food = (Pos){.c = random() % sn->size.c, .r = random() % sn->size.r};
+    sn->food =
+        (Pos){.c = random() % sn->size.c, .r = 1 + (random() % (sn->size.r - 1))};
 }
 
 void Snake_init(Snake *sn) {
@@ -140,7 +290,6 @@ void Snake_init(Snake *sn) {
     sn->head = (Pos){.c = size.c / 2, .r = size.r / 2};
     sn->tail = NULL;
     sn->tail_size = 0;
-    sn->no_food = true;
     sn->new_score = true;
     sn->dir = UP;
     sn->score = 0;

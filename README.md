@@ -22,7 +22,7 @@
 
 ## Info
     
-This is a simple library to use when building TUI applications in C.
+This is a simple library for building TUI applications in C.
   
 **This library is not trying to compete with libraries such as ncurses; this is only meant to be a fun project and nothing more.**  
   
