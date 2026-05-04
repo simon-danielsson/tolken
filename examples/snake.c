@@ -1,11 +1,10 @@
 //! example: snake
-
-#define TLK_IMPLEMENTATION
-#define ANA_IMPLEMENTATION
-#include "../src/libs/ana.h"
-#include "../tlk.h"
 #include <stdio.h>
 #include <time.h>
+#define TLK_IMPLEMENTATION
+#include "../tlk.h"
+#define ANA_IMPLEMENTATION
+#include "../src/libs/ana.h"
 
 typedef enum { UP, DOWN, LEFT, RIGHT } Dir;
 
@@ -47,7 +46,6 @@ void game_over(int score);
 #define SNAKE_ICO "█"
 
 int main(void) {
-
     setup();
     Snake sn;
     Snake_init(&sn);
@@ -67,13 +65,8 @@ int main(void) {
         update_snake_pos(&sn, &head_prev_pos);
 
         // collisions ------------------------------------------------------
-        if (boundary_collision(&sn)) {
-            game_over(sn.score);
-            sn.should_quit = true;
-            break;
-        }
 
-        if (snake_collision(&sn)) {
+        if (boundary_collision(&sn) || snake_collision(&sn)) {
             game_over(sn.score);
             sn.should_quit = true;
             break;
@@ -100,7 +93,7 @@ int main(void) {
             if (sn.new_score) {
                 score_buf[0] = '\0';
                 snprintf(score_buf, sizeof(score_buf), " Score: %d ", sn.score);
-                for (int i = 0; i < sn.size.c; i++) {
+                for (unsigned int i = 0; i < sn.size.c; i++) {
                     tlk_cursor_mv(&(Pos){.c = i, .r = 0});
                     tlk_draw(" ", (Style){.fg = BLACK, .bg = SCORE_COL});
                 }
@@ -142,17 +135,13 @@ int main(void) {
 }
 
 bool boundary_collision(Snake *sn) {
-    if (sn->head.c > sn->size.c || sn->head.c < 0) {
-        return true;
-    }
-    if (sn->head.r > sn->size.r || sn->head.r < 1) {
+    if (sn->head.c > sn->size.c || sn->head.c < 0 || sn->head.r > sn->size.r ||
+            sn->head.r < 1) {
         return true;
     }
     for (size_t i = 0; i < sn->tail_size; i++) {
-        if (sn->tail[i].current.c > sn->size.c || sn->tail[i].current.c < 0) {
-            return true;
-        }
-        if (sn->tail[i].current.r > sn->size.r || sn->tail[i].current.r < 1) {
+        if (sn->tail[i].current.c > sn->size.c || sn->tail[i].current.c < 0 ||
+                sn->tail[i].current.r > sn->size.r || sn->tail[i].current.r < 1) {
             return true;
         }
     }
@@ -177,8 +166,8 @@ void game_over(int score) {
     Pos size = tlk_terminal_size();
     char buff[256];
     snprintf(buff, sizeof(buff), " Total score: %d ", score);
-    tlk_cursor_mv(&(Pos){.c = size.c / 2 - 14, .r = size.r / 2 - 1});
-    tlk_draw("You lost! Exiting in 5 seconds.", tlk_style_default());
+    tlk_cursor_mv(&(Pos){.c = size.c / 2 - 5, .r = size.r / 2 - 1});
+    tlk_draw("You lost!", tlk_style_default());
     tlk_cursor_mv(
             &(Pos){.c = size.c / 2 - (strlen(buff) / 2), .r = size.r / 2 + 1});
     tlk_draw(buff, tlk_style_default());
@@ -186,51 +175,36 @@ void game_over(int score) {
     al_sleep(5);
 }
 
+#define UPDATE_TAIL                                                            \
+    for (size_t i = 0; i < sn->tail_size; i++) {                                 \
+        if (i == 0) {                                                              \
+            sn->tail[i].current = *head_prev_pos;                                    \
+        } else {                                                                   \
+            sn->tail[i].current = sn->tail[i - 1].prev;                              \
+        }                                                                          \
+    }
+
 void update_snake_pos(Snake *sn, Pos *head_prev_pos) {
     switch (sn->dir) {
         case LEFT:
             sn->head.c--;
-            for (size_t i = 0; i < sn->tail_size; i++) {
-                if (i == 0) {
-                    sn->tail[i].current = *head_prev_pos;
-                } else {
-                    sn->tail[i].current = sn->tail[i - 1].prev;
-                }
-            }
-            break;
+            UPDATE_TAIL
+                break;
 
         case RIGHT:
             sn->head.c++;
-            for (size_t i = 0; i < sn->tail_size; i++) {
-                if (i == 0) {
-                    sn->tail[i].current = *head_prev_pos;
-                } else {
-                    sn->tail[i].current = sn->tail[i - 1].prev;
-                }
-            }
-            break;
+            UPDATE_TAIL
+                break;
 
         case UP:
             sn->head.r--;
-            for (size_t i = 0; i < sn->tail_size; i++) {
-                if (i == 0) {
-                    sn->tail[i].current = *head_prev_pos;
-                } else {
-                    sn->tail[i].current = sn->tail[i - 1].prev;
-                }
-            }
-            break;
+            UPDATE_TAIL
+                break;
 
         case DOWN:
             sn->head.r++;
-            for (size_t i = 0; i < sn->tail_size; i++) {
-                if (i == 0) {
-                    sn->tail[i].current = *head_prev_pos;
-                } else {
-                    sn->tail[i].current = sn->tail[i - 1].prev;
-                }
-            }
-            break;
+            UPDATE_TAIL
+                break;
     }
 }
 
