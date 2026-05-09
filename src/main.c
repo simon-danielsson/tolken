@@ -1,4 +1,5 @@
 //! main entry point of program
+#include <stddef.h>
 #define ANA_IMPLEMENTATION
 #define TLK_IMPLEMENTATION
 #include "../tlk.h"
@@ -26,12 +27,40 @@ typedef struct {
     Key key;
     Pos size;
     bool should_quit;
+    char *entry_buffer;
+    size_t *entry_buffer_count;
 } TlkApp;
 
 void TlkApp_init(TlkApp *app) {
+    app->entry_buffer = (char *)malloc(sizeof(char) + 1);
+    app->entry_buffer_count = 0;
     app->should_quit = false;
     app->key = NONE;
     app->size = tlk_terminal_size();
+}
+
+void TlkApp_push_char_to_buff(TlkApp *app, char c) {
+    char *tmp =
+        realloc(app->entry_buffer, *(app->entry_buffer_count + 1) * sizeof(char));
+    if (!tmp) {
+        ERROR("Allocation failure");
+        return;
+    }
+    app->entry_buffer = tmp;
+    app->entry_buffer[*app->entry_buffer_count] = c;
+    app->entry_buffer_count++;
+}
+
+void TlkApp_remove_last_char_from_buff(TlkApp *app) {
+    char *tmp =
+        realloc(app->entry_buffer, *(app->entry_buffer_count - 1) * sizeof(char));
+    if (!tmp) {
+        ERROR("Allocation failure");
+        return;
+    }
+    app->entry_buffer = tmp;
+    // app->entry_buffer[*app->entry_buffer_count] = c;
+    app->entry_buffer_count--;
 }
 
 int main(void) {
@@ -41,11 +70,44 @@ int main(void) {
     tlk_screen_clear();
     tlk_screen_color(GREEN);
     bool quit = false;
+
+    bool typing = false;
     while (!quit) {
         // update
         {
             app.size = tlk_terminal_size();
             app.key = tlk_key();
+        }
+
+        if (app.key == ENTER) {
+            typing = true;
+            tlk_cursor_move_home();
+        }
+
+        while (typing) {
+            char *c;
+            while (c[strlen(c)] != '\n') {
+                bool n = read(STDIN_FILENO, &c, 1);
+                // TlkApp_push_char_to_buff(&app, c);
+
+                if (n) {
+                    if (c == '\n' || c == '\r') {
+                        typing = false;
+                        break;
+                    }
+                    if (c == 127) { // 127 = backspace
+                        tlk_cursor_move_home();
+                        tlk_clear_current_line();
+                        TlkApp_remove_last_char_from_buff(&app);
+                        printf("%s", app.entry_buffer);
+
+                        fflush(stdout);
+                        continue;
+                    }
+                    printf("%c", c);
+                    fflush(stdout);
+                }
+            }
         }
 
         // controls

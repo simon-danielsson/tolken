@@ -1,6 +1,7 @@
 build.sh
 notes.md
 .clangd
+/tools/nob/main.dSYM
 /tools/cdok/gen
 /tools/cdok/gen/*
 ANSI-escape-sequences.md

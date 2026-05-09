@@ -31,9 +31,11 @@ author="Simon Danielsson"
 author_contact="contact@simondanielsson.se"
 c_standard="gnu23"
 
+example="snake"
+
 c_flags_test=(
-    "-std=" "-g" "-O0" "-DDEBUG" "-fsanitize=address"
-    "-Wall" "-Wextra" "-Wpedantic" "-Wshadow" "-Werror=format-security"
+    "-std="  "-O2" "-DNDEBUG" "-fsanitize=address"
+    "-Wall" "-Wextra"
 )
 
 c_flags_debug=(
@@ -106,10 +108,22 @@ test_dir="$root/build/examples"; mkdir -p $test_dir
 build_tests() {
     cd "$root/tools/nob/" || return 1
     cc nob.c -o nob || return 1
+
+    local ex;
+    if [[ "$1" == "snake" ]]; then
+        ex="-DSNAKE"
+    fi
+
+    if [[ "$1" == "conway" ]]; then
+        ex="-DCONWAY"
+    fi
+
     local c_flags=(
+        "$ex"
         "${c_flags_test[@]}"
         "${nob_extra_flags[@]}"
         )
+
     APP_VERSION="$VERSION" ./nob "$root/examples" "${c_flags[@]}" || return 1
     bin_name="$project_name-$VERSION-example-$git_head_hash_short"
     mv main "$test_dir/$bin_name" || return 1
@@ -200,7 +214,10 @@ help() {
 
     printf "${col_cmd}cenv ${col_flag}example${CR}\n"
     printf "│ compile into and run from './build/examples' directory\n"
-    printf "╰ the source folder used for this command is './examples'\n"
+    printf "│ the source folder used for this command is './examples'\n"
+    printf "│\n"
+    printf "│ $ cenv example snake\n"
+    printf "╰ $ cenv example conway\n"
 
     printf "\n"
 
@@ -233,7 +250,7 @@ else
       build_debug
       ;;
     example)
-      build_tests
+      build_tests $2
       ;;
     help)
       help

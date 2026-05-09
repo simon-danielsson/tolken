@@ -1,6 +1,9 @@
-//! example: snake
+//! example snake game
+#ifdef SNAKE
+
 #include <stdio.h>
 #include <time.h>
+
 #define TLK_IMPLEMENTATION
 #include "../tlk.h"
 #define ANA_IMPLEMENTATION
@@ -65,6 +68,10 @@ int main(void) {
         update_snake_pos(&sn, &head_prev_pos);
 
         // collisions ------------------------------------------------------
+
+        // TODO: issue with food collision. snake does not collide with food
+        // sometimes when the food is right on the border of the game. (happens
+        // most of the time when the food is to the left border)
 
         if (boundary_collision(&sn) || snake_collision(&sn)) {
             game_over(sn.score);
@@ -295,3 +302,5 @@ void controls(Snake *sn) {
         return;
     }
 }
+
+#endif

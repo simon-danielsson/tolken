@@ -45,8 +45,12 @@ Copy [tlk.h](./tlk.h) into your project and include it like this:
 #include "./tlk.h"
 ```
   
-To get an idea of what this library is capable of, check out the following example programs:  
-- [snake](./examples/snake.c)
+To get an idea of what this library is capable of, clone this repo and run the
+[example programs](./examples):  
+``` bash
+$ cenv example snake  # snake game
+$ cenv example conway # game of life
+```
   
 ---
 <div id="license"></div>
