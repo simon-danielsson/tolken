@@ -33,24 +33,37 @@ int main() {
     setup();
     GameOfLife gol;
     GameOfLife_init(&gol);
+    int generations;
     while (!gol.should_quit) {
-        // update
-        update_cells(&gol);
-        // draw
-        for (unsigned int i = 0; i < gol.cell_count; i++) {
-            if (gol.cells[i].alive && gol.cells[i].alive != gol.cells[i].prev_state) {
+        GameOfLife_init(&gol);
+        generations = 0;
+        while (generations < 100 && !gol.should_quit) {
+            controls(&gol);
+            // update
+            update_cells(&gol);
+            // draw
+            for (unsigned int i = 0; i < gol.cell_count; i++) {
                 tlk_cursor_mv(&gol.cells[i].p);
-                tlk_draw("█", tlk_style_default());
+                if (!gol.cells[i].alive &&
+                        gol.cells[i].alive != gol.cells[i].prev_state) {
+                    tlk_draw(".", tlk_style_default());
+                    continue;
+                }
+                if (gol.cells[i].alive &&
+                        gol.cells[i].alive != gol.cells[i].prev_state) {
+                    tlk_draw("█", tlk_style_default());
+                }
             }
-            if (!gol.cells[i].alive &&
-                    gol.cells[i].alive != gol.cells[i].prev_state) {
-                tlk_cursor_mv(&gol.cells[i].p);
-                tlk_draw(".", tlk_style_default());
-            }
+
+            char buff[100];
+            snprintf(buff, sizeof(buff), "Generation: %d", generations);
+            tlk_cursor_move_home();
+            tlk_draw(buff, tlk_style_default());
+
+            // cycle
+            tlk_flush();
+            generations++;
         }
-        // cycle
-        tlk_flush();
-        controls(&gol);
     }
     cleanup();
     return 0;
@@ -65,7 +78,7 @@ void GameOfLife_init(GameOfLife *gol) {
         for (unsigned int j = 0; j < gol->size.c; j++) {
             gol->cells[counter].alive = rand() % 2 ? true : false;
             gol->cells[counter].p = (Pos){.c = j, .r = i};
-            gol->cells[counter].prev_state = true;
+            gol->cells[counter].prev_state = gol->cells[counter].alive;
             counter++;
         }
     }
@@ -74,15 +87,19 @@ void GameOfLife_init(GameOfLife *gol) {
 
 void update_cells(GameOfLife *gol) {
     bool next_alive[gol->cell_count];
+    Pos neighbor;
+    int live_neighbors;
 
     for (unsigned int k = 0; k < gol->cell_count; k++) {
-        int live_neighbors = 0;
+        live_neighbors = 0;
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
-                if (i == 0 && j == 0)
+                if (i == 0 && j == 0) {
                     continue;
+                }
 
-                Pos neighbor = {.r = gol->cells[k].p.r + i, .c = gol->cells[k].p.c + j};
+                neighbor =
+                    (Pos){.r = gol->cells[k].p.r + i, .c = gol->cells[k].p.c + j};
 
                 for (unsigned int p = 0; p < gol->cell_count; p++) {
                     if (gol->cells[p].p.r == neighbor.r &&
