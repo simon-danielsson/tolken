@@ -22,13 +22,12 @@
 
 ## Info
     
-This is a simple library for building TUI applications in C.
+A simple library for building TUI applications in C.
   
 > [!IMPORTANT]  
-> Only support for unix systems.  
-> This library is not trying to compete with libraries such as ncurses - this is only meant to be a fun project and nothing more.  
+> Only support for unix systems. This library is not trying to compete with libraries such as ncurses or crossterm - this is only meant to be a fun project and nothing more.  
   
-Inspirations and references:
+Inspirations, sources and references:
 - [nob.h](https://github.com/tsoding/nob.h)  
 - [stb](https://github.com/nothings/stb)  
 - [ANSI cheatsheet](https://gist.github.com/ConnerWill/d4b6c776b509add763e17f9f113fd25b)  
