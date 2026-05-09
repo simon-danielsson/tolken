@@ -55,6 +55,7 @@
 // reset      	0     	0
 //-------------------------
 
+/// ansi color
 typedef enum {
     BLACK,
     RED,
@@ -68,6 +69,7 @@ typedef enum {
     RESET,
 } Color;
 
+/// style options
 typedef struct {
     Color fg;
     Color bg;
@@ -96,98 +98,90 @@ typedef enum {
     BACKSPACE,
 
     LOWER_A,
-    UPPER_A,
-
     LOWER_B,
-    UPPER_B,
-
     LOWER_C,
-    UPPER_C,
-
     LOWER_D,
-    UPPER_D,
-
     LOWER_E,
-    UPPER_E,
-
     LOWER_F,
-    UPPER_F,
-
     LOWER_G,
-    UPPER_G,
-
     LOWER_H,
-    UPPER_H,
-
     LOWER_I,
-    UPPER_I,
-
     LOWER_J,
-    UPPER_J,
-
     LOWER_K,
-    UPPER_K,
-
     LOWER_L,
-    UPPER_L,
-
     LOWER_M,
-    UPPER_M,
-
     LOWER_N,
-    UPPER_N,
-
     LOWER_O,
-    UPPER_O,
-
     LOWER_P,
-    UPPER_P,
-
     LOWER_Q,
-    UPPER_Q,
-
     LOWER_R,
-    UPPER_R,
-
     LOWER_S,
-    UPPER_S,
-
     LOWER_T,
-    UPPER_T,
-
     LOWER_U,
-    UPPER_U,
-
     LOWER_V,
-    UPPER_V,
-
     LOWER_W,
-    UPPER_W,
-
     LOWER_X,
-    UPPER_X,
-
     LOWER_Y,
-    UPPER_Y,
-
     LOWER_Z,
+
+    UPPER_A,
+    UPPER_B,
+    UPPER_C,
+    UPPER_D,
+    UPPER_E,
+    UPPER_F,
+    UPPER_G,
+    UPPER_H,
+    UPPER_I,
+    UPPER_J,
+    UPPER_K,
+    UPPER_L,
+    UPPER_M,
+    UPPER_N,
+    UPPER_O,
+    UPPER_P,
+    UPPER_Q,
+    UPPER_R,
+    UPPER_S,
+    UPPER_T,
+    UPPER_U,
+    UPPER_V,
+    UPPER_W,
+    UPPER_X,
+    UPPER_Y,
     UPPER_Z,
 
     UNKNOWN,
     NONE
 } Key;
 
+/// restore screen to saved state
 void tlk_screen_restore(void);
+
+/// save screen state
 void tlk_screen_save(void);
+
+/// enable alternative buffer
 void tlk_alt_buffer_enable(void);
+
+/// disable alternative buffer
 void tlk_alt_buffer_disable(void);
+
+/// clear screen
 void tlk_screen_clear(void);
 
+/// reset color at cursor
 void tlk_color_reset(void);
 
+/// save cursor position
 void tlk_cursor_save_pos(void);
+
+/// restore cursor position
 void tlk_cursor_restore_pos(void);
+
+/// move cursor to home position (0,0)
 void tlk_cursor_move_home(void);
+
 void tlk_cursor_hide(void);
 void tlk_cursor_show(void);
 void tlk_cursor_mv(Pos *p);
@@ -196,8 +190,13 @@ void tlk_cursor_mv_up(int n);
 void tlk_cursor_mv_right(int n);
 void tlk_cursor_mv_left(int n);
 
+/// get terminal size as Pos
 Pos tlk_terminal_size();
+
+/// flush draws to screen
 void tlk_flush();
+
+/// get key input as Key enum
 Key tlk_key(void);
 
 void tlk_disable_raw_mode();
@@ -247,10 +246,18 @@ static unsigned int _tlk_color_to_code(Color col, bool fg) {
 
 // drawing & style
 
+/// set default style (to be used with function tlk_draw())
 Style tlk_style_default(void);
+
+/// clear line of the current cursor pos
 void tlk_clear_current_line(void);
+
 void tlk_clear_at_cursor_pos();
+
+/// queues a new draw to screen (needs to be flushed)
 void tlk_draw(const char *to_draw, Style c);
+
+/// queue draw screen color
 void tlk_screen_color(const Color c);
 
 #endif // TLK_DEF
@@ -335,6 +342,12 @@ Key tlk_key(void) {
     }
     // printf("key: 0x%02X\r\n", c);
 
+    if (c >= 'a' && c <= 'z')
+        return LOWER_A + (c - 'a');
+
+    if (c >= 'A' && c <= 'Z')
+        return UPPER_A + (c - 'A');
+
     switch (c) {
         case 0x03:
             return CTRL_C;
@@ -373,135 +386,6 @@ Key tlk_key(void) {
                          return UNKNOWN;
                      }
 
-        case 'a':
-                     return LOWER_A;
-        case 'A':
-                     return UPPER_A;
-
-        case 'b':
-                     return LOWER_B;
-        case 'B':
-                     return UPPER_B;
-
-        case 'c':
-                     return LOWER_C;
-        case 'C':
-                     return UPPER_C;
-
-        case 'd':
-                     return LOWER_D;
-        case 'D':
-                     return UPPER_D;
-
-        case 'e':
-                     return LOWER_E;
-        case 'E':
-                     return UPPER_E;
-
-        case 'f':
-                     return LOWER_F;
-        case 'F':
-                     return UPPER_F;
-
-        case 'g':
-                     return LOWER_G;
-        case 'G':
-                     return UPPER_G;
-
-        case 'h':
-                     return LOWER_H;
-        case 'H':
-                     return UPPER_H;
-
-        case 'i':
-                     return LOWER_I;
-        case 'I':
-                     return UPPER_I;
-
-        case 'j':
-                     return LOWER_J;
-        case 'J':
-                     return UPPER_J;
-
-        case 'k':
-                     return LOWER_K;
-        case 'K':
-                     return UPPER_K;
-
-        case 'l':
-                     return LOWER_L;
-        case 'L':
-                     return UPPER_L;
-
-        case 'm':
-                     return LOWER_M;
-        case 'M':
-                     return UPPER_M;
-
-        case 'n':
-                     return LOWER_N;
-        case 'N':
-                     return UPPER_N;
-
-        case 'o':
-                     return LOWER_O;
-        case 'O':
-                     return UPPER_O;
-
-        case 'p':
-                     return LOWER_P;
-        case 'P':
-                     return UPPER_P;
-
-        case 'q':
-                     return LOWER_Q;
-        case 'Q':
-                     return UPPER_Q;
-
-        case 'r':
-                     return LOWER_R;
-        case 'R':
-                     return UPPER_R;
-
-        case 's':
-                     return LOWER_S;
-        case 'S':
-                     return UPPER_S;
-
-        case 't':
-                     return LOWER_T;
-        case 'T':
-                     return UPPER_T;
-
-        case 'u':
-                     return LOWER_U;
-        case 'U':
-                     return UPPER_U;
-
-        case 'v':
-                     return LOWER_V;
-        case 'V':
-                     return UPPER_V;
-
-        case 'w':
-                     return LOWER_W;
-        case 'W':
-                     return UPPER_W;
-
-        case 'x':
-                     return LOWER_X;
-        case 'X':
-                     return UPPER_X;
-
-        case 'y':
-                     return LOWER_Y;
-        case 'Y':
-                     return UPPER_Y;
-
-        case 'z':
-                     return LOWER_Z;
-        case 'Z':
-                     return UPPER_Z;
         default:
                      return UNKNOWN;
     }
