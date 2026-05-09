@@ -83,7 +83,6 @@ typedef struct {
 /// output of tlk_key()
 typedef enum {
     CTRL_C,
-    Q,
 
     ARROW_UP,
     ARROW_DOWN,
@@ -95,6 +94,84 @@ typedef enum {
     ENTER,
     TAB,
     BACKSPACE,
+
+    LOWER_A,
+    UPPER_A,
+
+    LOWER_B,
+    UPPER_B,
+
+    LOWER_C,
+    UPPER_C,
+
+    LOWER_D,
+    UPPER_D,
+
+    LOWER_E,
+    UPPER_E,
+
+    LOWER_F,
+    UPPER_F,
+
+    LOWER_G,
+    UPPER_G,
+
+    LOWER_H,
+    UPPER_H,
+
+    LOWER_I,
+    UPPER_I,
+
+    LOWER_J,
+    UPPER_J,
+
+    LOWER_K,
+    UPPER_K,
+
+    LOWER_L,
+    UPPER_L,
+
+    LOWER_M,
+    UPPER_M,
+
+    LOWER_N,
+    UPPER_N,
+
+    LOWER_O,
+    UPPER_O,
+
+    LOWER_P,
+    UPPER_P,
+
+    LOWER_Q,
+    UPPER_Q,
+
+    LOWER_R,
+    UPPER_R,
+
+    LOWER_S,
+    UPPER_S,
+
+    LOWER_T,
+    UPPER_T,
+
+    LOWER_U,
+    UPPER_U,
+
+    LOWER_V,
+    UPPER_V,
+
+    LOWER_W,
+    UPPER_W,
+
+    LOWER_X,
+    UPPER_X,
+
+    LOWER_Y,
+    UPPER_Y,
+
+    LOWER_Z,
+    UPPER_Z,
 
     UNKNOWN,
     NONE
@@ -271,10 +348,6 @@ Key tlk_key(void) {
         case 0x7F:
             return BACKSPACE;
 
-        case 'q':
-        case 'Q':
-            return Q;
-
         case '\x1B': {
                          char seq[2];
 
@@ -300,6 +373,135 @@ Key tlk_key(void) {
                          return UNKNOWN;
                      }
 
+        case 'a':
+                     return LOWER_A;
+        case 'A':
+                     return UPPER_A;
+
+        case 'b':
+                     return LOWER_B;
+        case 'B':
+                     return UPPER_B;
+
+        case 'c':
+                     return LOWER_C;
+        case 'C':
+                     return UPPER_C;
+
+        case 'd':
+                     return LOWER_D;
+        case 'D':
+                     return UPPER_D;
+
+        case 'e':
+                     return LOWER_E;
+        case 'E':
+                     return UPPER_E;
+
+        case 'f':
+                     return LOWER_F;
+        case 'F':
+                     return UPPER_F;
+
+        case 'g':
+                     return LOWER_G;
+        case 'G':
+                     return UPPER_G;
+
+        case 'h':
+                     return LOWER_H;
+        case 'H':
+                     return UPPER_H;
+
+        case 'i':
+                     return LOWER_I;
+        case 'I':
+                     return UPPER_I;
+
+        case 'j':
+                     return LOWER_J;
+        case 'J':
+                     return UPPER_J;
+
+        case 'k':
+                     return LOWER_K;
+        case 'K':
+                     return UPPER_K;
+
+        case 'l':
+                     return LOWER_L;
+        case 'L':
+                     return UPPER_L;
+
+        case 'm':
+                     return LOWER_M;
+        case 'M':
+                     return UPPER_M;
+
+        case 'n':
+                     return LOWER_N;
+        case 'N':
+                     return UPPER_N;
+
+        case 'o':
+                     return LOWER_O;
+        case 'O':
+                     return UPPER_O;
+
+        case 'p':
+                     return LOWER_P;
+        case 'P':
+                     return UPPER_P;
+
+        case 'q':
+                     return LOWER_Q;
+        case 'Q':
+                     return UPPER_Q;
+
+        case 'r':
+                     return LOWER_R;
+        case 'R':
+                     return UPPER_R;
+
+        case 's':
+                     return LOWER_S;
+        case 'S':
+                     return UPPER_S;
+
+        case 't':
+                     return LOWER_T;
+        case 'T':
+                     return UPPER_T;
+
+        case 'u':
+                     return LOWER_U;
+        case 'U':
+                     return UPPER_U;
+
+        case 'v':
+                     return LOWER_V;
+        case 'V':
+                     return UPPER_V;
+
+        case 'w':
+                     return LOWER_W;
+        case 'W':
+                     return UPPER_W;
+
+        case 'x':
+                     return LOWER_X;
+        case 'X':
+                     return UPPER_X;
+
+        case 'y':
+                     return LOWER_Y;
+        case 'Y':
+                     return UPPER_Y;
+
+        case 'z':
+                     return LOWER_Z;
+        case 'Z':
+                     return UPPER_Z;
         default:
                      return UNKNOWN;
     }

@@ -178,7 +178,7 @@ void cleanup(void) {
 
 void controls(GameOfLife *gol) {
     Key key = tlk_key();
-    if (key == ESCAPE || key == Q || key == CTRL_C) {
+    if (key == ESCAPE || key == LOWER_Q || key == CTRL_C) {
         gol->should_quit = true;
         return;
     }

@@ -69,10 +69,6 @@ int main(void) {
 
         // collisions ------------------------------------------------------
 
-        // TODO: issue with food collision. snake does not collide with food
-        // sometimes when the food is right on the border of the game. (happens
-        // most of the time when the food is to the left border)
-
         if (boundary_collision(&sn) || snake_collision(&sn)) {
             game_over(sn.score);
             sn.should_quit = true;
@@ -281,7 +277,7 @@ void Snake_init(Snake *sn) {
 void controls(Snake *sn) {
     Key key = tlk_key();
 
-    if (key == ESCAPE || key == Q || key == CTRL_C) {
+    if (key == ESCAPE || key == LOWER_Q || key == UPPER_Q || key == CTRL_C) {
         sn->should_quit = true;
         return;
     }
