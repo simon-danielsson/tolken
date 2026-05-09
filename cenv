@@ -31,8 +31,6 @@ author="Simon Danielsson"
 author_contact="contact@simondanielsson.se"
 c_standard="gnu23"
 
-example="snake"
-
 c_flags_test=(
     "-std="  "-O2" "-DNDEBUG" "-fsanitize=address"
     "-Wall" "-Wextra"
@@ -116,6 +114,9 @@ build_tests() {
 
     if [[ "$1" == "conway" ]]; then
         ex="-DCONWAY"
+    fi
+    if [[ "$1" == "todo" ]]; then
+        ex="-DTODO"
     fi
 
     local c_flags=(
@@ -216,6 +217,7 @@ help() {
     printf "│ compile into and run from './build/examples' directory\n"
     printf "│ the source folder used for this command is './examples'\n"
     printf "│\n"
+    printf "│ $ cenv example todo\n"
     printf "│ $ cenv example snake\n"
     printf "╰ $ cenv example conway\n"
 

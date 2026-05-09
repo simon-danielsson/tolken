@@ -48,6 +48,7 @@ Copy [tlk.h](./tlk.h) into your project and include it like this:
 To get an idea of what this library is capable of, clone this repo and run the
 [example programs](./examples):  
 ``` bash
+$ cenv example todo   # todo app
 $ cenv example snake  # snake game
 $ cenv example conway # game of life
 ```
