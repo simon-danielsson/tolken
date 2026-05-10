@@ -64,19 +64,16 @@ int main() {
             }
             controls(&b);
 
-            // TODO: add open/xdg-open system command that exits app
             if (b.should_open) {
                 open_item(&b);
                 b.should_open = false;
             }
 
-            // TODO: add hier_move_up function
             if (b.hier_mv_up) {
                 hier_mv_up(&b);
                 b.hier_mv_up = false;
             }
 
-            // TODO: add hier_move_down function
             if (b.hier_mv_dn) {
                 hier_mv_dn(&b);
                 b.hier_mv_dn = false;

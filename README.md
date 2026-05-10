@@ -25,6 +25,7 @@ Header-only C library for building simple TUI applications for unix systems.
 Inspirations, sources and references:
 - [nob.h](https://github.com/tsoding/nob.h)  
 - [stb](https://github.com/nothings/stb)  
+- [crossterm](https://github.com/crossterm-rs/crossterm)  
 - [ANSI cheatsheet](https://gist.github.com/ConnerWill/d4b6c776b509add763e17f9f113fd25b)  
   
 ---
