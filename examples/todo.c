@@ -83,8 +83,13 @@ int main() {
             while (a.in_entry) {
                 add_new_item(&a);
             }
-            if (a.items_amt > 0)
+            if (a.items_amt > 0) {
                 draw_items(&a);
+            } else {
+                tlk_cursor_mv(&(Pos){.c = (a.size.c / 2) - 15, .r = a.size.r / 2});
+                tlk_clear_current_line();
+                tlk_draw("No tasks have been added yet...", tlk_style_default());
+            }
         }
 
         tlk_flush();
@@ -208,10 +213,7 @@ void toggle_item_status(App *a) {
     }
 }
 
-#define ITEM_MV                                                                \
-    tlk_cursor_mv(                                                               \
-            &(Pos){.c = center_col - ((strlen(a->items[i].content) + 4) / 2),        \
-            .r = initial_row + i});
+#define ITEM_MV tlk_cursor_mv(&(Pos){.c = 4, .r = initial_row + i});
 
 void draw_items(App *a) {
     unsigned int center_col = a->size.c / 2;
@@ -219,9 +221,9 @@ void draw_items(App *a) {
     char *done;
     for (size_t i = 0; i < a->items_amt; i++) {
         if (a->items[i].s == DONE) {
-            done = "[*] ";
+            done = "[*]        ";
         } else {
-            done = "[ ] ";
+            done = "[ ]        ";
         }
         if ((int)i == a->item_sel) {
             Style st = {.bg = WHITE, .fg = BLACK, .bold = true};
