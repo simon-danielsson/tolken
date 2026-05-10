@@ -340,13 +340,13 @@ void setup(void) {
 }
 
 void cleanup(void) {
-    tlk_screen_clear();
     tlk_disable_raw_mode();
-    tlk_alt_buffer_disable();
-    tlk_screen_restore();
     tlk_cursor_show();
     tlk_color_reset();
+    tlk_alt_buffer_disable();
     tlk_cursor_restore_pos();
+    tlk_screen_restore();
+    tlk_flush();
 }
 
 void controls(Browser *b) {

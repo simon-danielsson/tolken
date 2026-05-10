@@ -6,21 +6,22 @@
 #include "env.h"
 
 void setup(void) {
-    tlk_cursor_save_pos();
     tlk_screen_save();
+    tlk_cursor_save_pos();
     tlk_cursor_hide();
+    tlk_alt_buffer_enable();
     tlk_enable_raw_mode();
     tlk_screen_clear();
 }
 
 void cleanup(void) {
-    tlk_screen_clear();
     tlk_disable_raw_mode();
-    tlk_alt_buffer_disable();
-    tlk_screen_restore();
     tlk_cursor_show();
     tlk_color_reset();
+    tlk_alt_buffer_disable();
     tlk_cursor_restore_pos();
+    tlk_screen_restore();
+    tlk_flush();
 }
 
 typedef struct {
@@ -77,37 +78,6 @@ int main(void) {
         {
             app.size = tlk_terminal_size();
             app.key = tlk_key();
-        }
-
-        if (app.key == ENTER) {
-            typing = true;
-            tlk_cursor_move_home();
-        }
-
-        while (typing) {
-            char *c;
-            while (c[strlen(c)] != '\n') {
-                bool n = read(STDIN_FILENO, &c, 1);
-                // TlkApp_push_char_to_buff(&app, c);
-
-                if (n) {
-                    if (c == '\n' || c == '\r') {
-                        typing = false;
-                        break;
-                    }
-                    if (c == 127) { // 127 = backspace
-                        tlk_cursor_move_home();
-                        tlk_clear_current_line();
-                        TlkApp_remove_last_char_from_buff(&app);
-                        printf("%s", app.entry_buffer);
-
-                        fflush(stdout);
-                        continue;
-                    }
-                    printf("%c", c);
-                    fflush(stdout);
-                }
-            }
         }
 
         // controls
