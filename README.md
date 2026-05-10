@@ -1,11 +1,6 @@
 <h1 align="center">tolken</h1>
   
 <p align="center">
-  <em>Header-only C library for building simple<br>TUI applications for unix
-  systems.</em>
-</p>
-  
-<p align="center">
     <img src="https://img.shields.io/badge/C_version-23-cyan?style=flat-square" alt="C version" />
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License" />
   <img src="https://img.shields.io/github/last-commit/simon-danielsson/tolken/main?style=flat-square&color=blue" alt="Last commit" />
@@ -22,10 +17,10 @@
 
 ## Info
     
-A simple library for building TUI applications in C.
+Header-only C library for building simple TUI applications for unix systems.
   
 > [!IMPORTANT]  
-> Only support for unix systems. This library is not trying to compete with libraries such as ncurses or crossterm - this is only meant to be a fun project and nothing more.  
+> This library is not trying to compete with libraries such as ncurses or crossterm - this is only meant to be a fun project and nothing more.  
   
 Inspirations, sources and references:
 - [nob.h](https://github.com/tsoding/nob.h)  
