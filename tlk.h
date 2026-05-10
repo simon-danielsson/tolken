@@ -471,31 +471,36 @@ void tlk_screen_color(const Color c) {
 void tlk_draw_rect(Rect *r, Style s, BorderType b) {
     const char **borders = _tlk_get_borders(b);
 
-    tlk_cursor_mv(&r->p);
+    unsigned int left = r->p.c;
+    unsigned int top = r->p.r;
+    unsigned int right = r->p.c + r->width - 1;
+    unsigned int bottom = r->p.r + r->height - 1;
+
+    tlk_cursor_mv(&(Pos){.c = left, .r = top});
     tlk_draw(borders[0], s);
-    for (unsigned int i = 0; i < r->width - 1; i++) {
+
+    for (unsigned int i = left + 1; i < right; i++) {
         tlk_draw(borders[5], s);
     }
 
     tlk_draw(borders[1], s);
-    tlk_cursor_mv(&r->p);
-    for (unsigned int i = 1; i < r->height - 5; i++) {
-        tlk_cursor_mv(&(Pos){.r = r->p.r + i, .c = r->p.c});
+
+    for (unsigned int row = top + 1; row < bottom; row++) {
+        tlk_cursor_mv(&(Pos){.c = left, .r = row});
+        tlk_draw(borders[4], s);
+
+        tlk_cursor_mv(&(Pos){.c = right, .r = row});
         tlk_draw(borders[4], s);
     }
 
-    tlk_cursor_mv(&(Pos){.r = r->height, .c = r->p.c});
-    tlk_draw(borders[2], tlk_style_default());
-    for (unsigned int i = 0; i < r->width - 1; i++) {
+    tlk_cursor_mv(&(Pos){.c = left, .r = bottom});
+    tlk_draw(borders[2], s);
+
+    for (unsigned int i = left + 1; i < right; i++) {
         tlk_draw(borders[5], s);
     }
 
-    tlk_draw(borders[3], tlk_style_default());
-    tlk_cursor_mv(&r->p);
-    for (unsigned int i = 1; i < r->height - 5; i++) {
-        tlk_cursor_mv(&(Pos){.r = r->p.r + i, .c = r->p.c + r->width});
-        tlk_draw(borders[4], s);
-    }
+    tlk_draw(borders[3], s);
 }
 
 #endif
