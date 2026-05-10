@@ -1,4 +1,4 @@
-//! tolken (tlk.h) v0.1.6
+//! tolken (tlk.h) v0.1.7
 //!
 //! https://github.com/simon-danielsson/tolken
 
@@ -155,6 +155,19 @@ typedef enum {
     NONE
 } Key;
 
+typedef struct {
+    Pos p;
+    unsigned int width;
+    unsigned int height;
+} Rect;
+
+typedef enum {
+    LIGHT,
+    HEAVY,
+    DOUBLE,
+    ROUNDED,
+} BorderType;
+
 /// restore screen to saved state
 void tlk_screen_restore(void);
 
@@ -202,7 +215,7 @@ Key tlk_key(void);
 void tlk_disable_raw_mode();
 void tlk_enable_raw_mode();
 
-static unsigned int _tlk_color_to_code(Color col, bool fg) {
+static inline unsigned int _tlk_color_to_code(Color col, bool fg) {
     if (col == RESET) {
         return 0;
     } else {
@@ -244,6 +257,26 @@ static unsigned int _tlk_color_to_code(Color col, bool fg) {
     }
 }
 
+static inline const char **_tlk_get_borders(BorderType b) {
+    static const char *rounded[] = {"╭", "╮", "╰", "╯", "│", "─"};
+    static const char *heavy[] = {"┏", "┓", "┗", "┛", "┃", "━"};
+    static const char *light[] = {"┌", "┐", "└", "┘", "│", "─"};
+    static const char *dbl[] = {"╔", "╗", "╚", "╝", "║", "═"};
+
+    switch (b) {
+        case ROUNDED:
+            return rounded;
+        case HEAVY:
+            return heavy;
+        case LIGHT:
+            return light;
+        case DOUBLE:
+            return dbl;
+        default:
+            return light;
+    }
+}
+
 // drawing & style
 
 /// set default style (to be used with function tlk_draw())
@@ -256,6 +289,9 @@ void tlk_clear_at_cursor_pos();
 
 /// queues a new draw to screen (needs to be flushed)
 void tlk_draw(const char *to_draw, Style c);
+
+/// draw rect
+void tlk_draw_rect(Rect *r, Style s, BorderType b);
 
 /// queue draw screen color
 void tlk_screen_color(const Color c);
@@ -430,6 +466,36 @@ void tlk_screen_color(const Color c) {
     }
 
     tlk_cursor_move_home();
+}
+
+void tlk_draw_rect(Rect *r, Style s, BorderType b) {
+    const char **borders = _tlk_get_borders(b);
+
+    tlk_cursor_mv(&r->p);
+    tlk_draw(borders[0], s);
+    for (unsigned int i = 0; i < r->width - 1; i++) {
+        tlk_draw(borders[5], s);
+    }
+
+    tlk_draw(borders[1], s);
+    tlk_cursor_mv(&r->p);
+    for (unsigned int i = 1; i < r->height - 5; i++) {
+        tlk_cursor_mv(&(Pos){.r = r->p.r + i, .c = r->p.c});
+        tlk_draw(borders[4], s);
+    }
+
+    tlk_cursor_mv(&(Pos){.r = r->height, .c = r->p.c});
+    tlk_draw(borders[2], tlk_style_default());
+    for (unsigned int i = 0; i < r->width - 1; i++) {
+        tlk_draw(borders[5], s);
+    }
+
+    tlk_draw(borders[3], tlk_style_default());
+    tlk_cursor_mv(&r->p);
+    for (unsigned int i = 1; i < r->height - 5; i++) {
+        tlk_cursor_mv(&(Pos){.r = r->p.r + i, .c = r->p.c + r->width});
+        tlk_draw(borders[4], s);
+    }
 }
 
 #endif
