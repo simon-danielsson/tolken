@@ -55,7 +55,6 @@ int main() {
     Browser_gen_items(&b);
 
     while (!b.should_quit) {
-
         // update
         {
             term_size = tlk_terminal_size();
@@ -63,17 +62,14 @@ int main() {
                 b.size = term_size;
             }
             controls(&b);
-
             if (b.should_open) {
                 open_item(&b);
                 b.should_open = false;
             }
-
             if (b.hier_mv_up) {
                 hier_mv_up(&b);
                 b.hier_mv_up = false;
             }
-
             if (b.hier_mv_dn) {
                 hier_mv_dn(&b);
                 b.hier_mv_dn = false;
@@ -84,7 +80,9 @@ int main() {
         {
             draw_header(&b);
             draw_current_dir(&b, 2);
-            draw_items(&b, 4);
+            if (b.items_amt > 0) {
+                draw_items(&b, 4);
+            }
         }
         tlk_flush();
     }
@@ -102,9 +100,7 @@ void open_item(Browser *b) {
 #else
             ERROR("Unknown or non-unix platform detected\n");
 #endif
-
             pid_t pid = fork();
-
             if (pid == 0) {
                 execlp(cmd, cmd, b->items[i].path, (char *)NULL);
                 _exit(127); // exec failed
@@ -114,7 +110,6 @@ void open_item(Browser *b) {
             } else {
                 perror("fork");
             }
-
             break;
         }
     }
@@ -126,9 +121,7 @@ void Browser_reset_items(Browser *b) {
         free(b->items[i].path);
     }
     free(b->items);
-
-    // new items
-    b->items = (Item *)malloc(8 * sizeof(Item));
+    b->items = malloc(8 * sizeof(Item));
     b->items_amt = 0;
     b->item_sel = 0;
 }
@@ -152,36 +145,34 @@ char *get_parent_dir(const char *f) {
 }
 
 void hier_mv_up(Browser *b) {
-    // get new current_dir
-    for (size_t i = 0; i < b->items_amt; i++) {
-        if ((int)i == b->item_sel) {
-            b->current_dir = get_parent_dir(b->current_dir);
-            if (b->current_dir == NULL) {
-                ERROR("parent dir is NULL");
-            }
-        }
+    if (!b || !b->current_dir) {
+        return;
     }
-
+    char *parent_dir = get_parent_dir(b->current_dir);
+    free(b->current_dir);
+    b->current_dir = parent_dir;
     Browser_reset_items(b);
-
     tlk_screen_clear();
     Browser_gen_items(b);
 }
 
 void hier_mv_dn(Browser *b) {
-    // get new current_dir
-    for (size_t i = 0; i < b->items_amt; i++) {
-        if ((int)i == b->item_sel) {
-            if (b->items[i].type == IS_DIR) {
-                free(b->current_dir);
-                b->current_dir = al_strdup(b->items[i].path);
-                Browser_reset_items(b);
-                tlk_screen_clear();
-                Browser_gen_items(b);
-                return;
-            }
-        }
+    if (!b || b->item_sel < 0 || (size_t)b->item_sel >= b->items_amt) {
+        return;
     }
+    Item *item = &b->items[b->item_sel];
+    if (item->type != IS_DIR) {
+        return;
+    }
+    char *new_dir = al_strdup(item->path);
+    if (!new_dir) {
+        return;
+    }
+    free(b->current_dir);
+    b->current_dir = new_dir;
+    Browser_reset_items(b);
+    tlk_screen_clear();
+    Browser_gen_items(b);
 }
 
 void draw_current_dir(Browser *b, unsigned int row) {
@@ -231,7 +222,7 @@ void draw_items(Browser *b, unsigned int init_row) {
         if (spacing_w < 0)
             spacing_w = 0;
         for (int j = 0; j < spacing_w; j++) {
-            spacing[j] = (j % 2 == 0) ? ' ' : '-';
+            spacing[j] = (j % 2 == 0) ? ' ' : '.';
         }
         spacing[spacing_w] = '\0';
         snprintf(display, sizeof(display), "%s%s%s%s", icon, b->items[i].disp_name,
@@ -260,7 +251,6 @@ void draw_header(Browser *b) {
         tlk_cursor_mv(&(Pos){.c = i, .r = 0});
         tlk_draw(" ", st);
     }
-
     tlk_cursor_mv(&(Pos){.c = (b->size.c / 2) - (36 / 2), .r = 0});
     tlk_draw("q ", stb);
     tlk_draw("quit • ", st);
@@ -285,15 +275,12 @@ void Browser_push_item(Browser *b, Item *i) {
 
 PathType check_path_type(const char *path) {
     struct stat path_stat;
-
     if (lstat(path, &path_stat) != 0) {
         ERROR("Path does not exist: %s", path);
     }
-
     if (S_ISLNK(path_stat.st_mode)) {
         return IS_ELSE;
     }
-
     if (S_ISREG(path_stat.st_mode)) {
         return IS_FILE;
     } else if (S_ISDIR(path_stat.st_mode)) {
@@ -315,18 +302,14 @@ void Browser_gen_items(Browser *b) {
                 strcmp(file_info->d_name, "..") == 0) {
             continue;
         }
-
         char file_path[1000];
         snprintf(file_path, sizeof(file_path), "%s/%s", b->current_dir,
                 file_info->d_name);
-
         struct stat st;
         size_t size = 0;
-
         if (stat(file_path, &st) == 0) {
             size = st.st_size;
         }
-
         Browser_push_item(b, &(Item){.size_bytes = size,
                 .disp_name = al_strdup(file_info->d_name),
                 .type = check_path_type(file_path),
@@ -341,11 +324,8 @@ void Browser_init(Browser *b) {
     b->should_open = false;
     b->hier_mv_dn = false;
     b->hier_mv_up = false;
-
     b->size = tlk_terminal_size();
-
     b->current_dir = get_current_dir();
-
     b->items = (Item *)malloc(8 * sizeof(Item));
     b->items_amt = 0;
     b->item_sel = 0;
@@ -379,7 +359,6 @@ void controls(Browser *b) {
     if (b->k == LOWER_O || b->k == UPPER_O) {
         b->should_open = true;
     }
-
     if (b->k == ARROW_LEFT) {
         b->hier_mv_up = true;
     }
