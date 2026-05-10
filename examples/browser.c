@@ -175,15 +175,16 @@ void hier_mv_dn(Browser *b) {
     // get new current_dir
     for (size_t i = 0; i < b->items_amt; i++) {
         if ((int)i == b->item_sel) {
-            free(b->current_dir);
-            b->current_dir = al_strdup(b->items[i].path);
+            if (b->items[i].type == IS_DIR) {
+                free(b->current_dir);
+                b->current_dir = al_strdup(b->items[i].path);
+                Browser_reset_items(b);
+                tlk_screen_clear();
+                Browser_gen_items(b);
+                return;
+            }
         }
     }
-
-    Browser_reset_items(b);
-
-    tlk_screen_clear();
-    Browser_gen_items(b);
 }
 
 void draw_current_dir(Browser *b, unsigned int row) {
