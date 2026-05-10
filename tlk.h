@@ -1,4 +1,4 @@
-//! tolken (tlk.h) v0.1.5
+//! tolken (tlk.h) v0.1.6
 //!
 //! https://github.com/simon-danielsson/tolken
 

@@ -118,6 +118,9 @@ build_tests() {
     if [[ "$1" == "todo" ]]; then
         ex="-DTODO"
     fi
+    if [[ "$1" == "browser" ]]; then
+        ex="-DBROWSER"
+    fi
 
     local c_flags=(
         "$ex"
@@ -128,6 +131,7 @@ build_tests() {
     APP_VERSION="$VERSION" ./nob "$root/examples" "${c_flags[@]}" || return 1
     bin_name="$project_name-$VERSION-example-$git_head_hash_short"
     mv main "$test_dir/$bin_name" || return 1
+    cd $root
     "$test_dir/$bin_name"
 }
 
@@ -217,6 +221,7 @@ help() {
     printf "│ compile into and run from './build/examples' directory\n"
     printf "│ the source folder used for this command is './examples'\n"
     printf "│\n"
+    printf "│ $ cenv example browser\n"
     printf "│ $ cenv example todo\n"
     printf "│ $ cenv example snake\n"
     printf "╰ $ cenv example conway\n"

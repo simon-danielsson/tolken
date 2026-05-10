@@ -318,10 +318,11 @@ void controls(App *a) {
     }
     if (a->k == ARROW_DOWN) {
         a->item_sel++;
-        if (a->item_sel == (int)a->items_amt) {
-            a->item_sel = (int)a->items_amt;
+        if (a->item_sel >= (int)a->items_amt) {
+            a->item_sel = (int)a->items_amt - 1;
         }
     }
+
     if (a->k == ARROW_UP) {
         a->item_sel--;
         if (a->item_sel < 0) {
